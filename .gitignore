@@ -3,3 +3,4 @@ models/*
 exploration.ipynb
 .env
 *.tiff
+output/*

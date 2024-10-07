@@ -15,6 +15,7 @@ import matplotlib
 from torch import nn
 import os
 import matplotlib.pyplot as plt
+import subprocess
 
 # Function to process the image and convert it to .tif
 def process_image(image, output_path):
@@ -67,10 +68,10 @@ def main():
 
     if submit and user_input and uploaded_file:
 
-        with open(uploaded_file.name, "wb") as f:
+        with open(f'input/{uploaded_file.name}', "wb") as f:
             f.write(uploaded_file.getbuffer())
 
-        tif_path = uploaded_file.name
+        tif_path = 'input/' + uploaded_file.name
 
         st.write(f"Model Output")
         st.write(get_completion(user_input))
@@ -92,9 +93,24 @@ def main():
         
         # Call the Prithvi model for inference
         with st.spinner('Model is Running...'):
-            inference_result = call_prithvi_model(tif_path, chosen_detector)  
+            # inference_result = call_prithvi_model(tif_path, chosen_detector)  
+            config_path = f'configs/{chosen_detector}.py'
+            ckpt_path = f'models/{chosen_detector}.pth'
+            output_path = 'output/'
+            command = [
+                'python', 'model_inference.py',
+                '-config', config_path,
+                '-ckpt', ckpt_path,
+                '-input', 'input/',
+                '-output', output_path,
+                '-input_type', 'tif',
+                '-bands', '0', '1', '2', '3', '4', '5'
+            ]
+            subprocess.run(command, check=True)
 
         # Display the result
+        result_path = os.path.join(output_path, uploaded_file.name.replace('.tif', '_pred.tif'))
+        inference_result = load_raster(result_path)
         show_results(inference_result, tif_path)
 
         # Delete the uploaded file after processing

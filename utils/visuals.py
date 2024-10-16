@@ -1,8 +1,10 @@
 import os
 import torch
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import numpy as np
 import rasterio
+import streamlit as st
 import yaml
 
 NO_DATA = -9999
@@ -57,3 +59,40 @@ def plot_image_mask_reconstruction(normalized, mask_img, pred_img):
     masked_img_np[mask_img_np[..., 0] == 1] = 0
     ax[1].imshow(masked_img_np)
     ax[2].imshow(enhance_raster_for_visualization(rec_img_np, ref_img=input_data))
+
+
+def show_results(input_raster_path, output_raster_path):
+    input_data = load_raster(input_raster_path)
+    input_raster_for_visualization = enhance_raster_for_visualization(input_data)
+
+    # Load the second raster (output/prediction)
+    output_data = load_raster(output_raster_path)
+    output_raster_for_visualization = enhance_raster_for_visualization(output_data)
+
+    # Define a colormap and normalization for classes (e.g., 0, 1, 2 for 3 classes)
+    norm = mcolors.Normalize(vmin=0, vmax=2)  # Assuming 3 classes (0, 1, 2)
+    cmap = plt.cm.jet  # You can change this to any colormap
+
+    # Create figure and axis
+    fig, ax = plt.subplots(1, 1, figsize=(10, 6))  # Single plot for overlay
+
+    # Turn off axis
+    ax.axis('off')
+
+    # Display the input raster
+    ax.imshow(input_raster_for_visualization)
+
+    # Overlay the output raster with some transparency
+    im = ax.imshow(output_raster_for_visualization, cmap=cmap, norm=norm, alpha=0.3)
+
+    # Add a colorbar to represent the classes (legend)
+    cbar = plt.colorbar(im, ax=ax, fraction=0.03, pad=0.04)
+
+    # Set the class labels for the colorbar
+    cbar.set_ticks([0, 1, 2])  # Assuming you have 3 classes: 0, 1, 2
+    cbar.set_ticklabels(['Class 0', 'Class 1', 'Class 2'])  # Change labels as needed
+
+    # Show the final result
+    plt.show()
+
+    st.pyplot(fig)

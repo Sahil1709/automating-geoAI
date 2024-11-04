@@ -9,3 +9,4 @@ streamlit
 groq
 python-dotenv
 matplotlib
+pystac-client

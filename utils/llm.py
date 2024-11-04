@@ -87,3 +87,75 @@ def get_dates(user_input):
 
     print(completion.choices[0].message)
     return json.loads(completion.choices[0].message.content)
+
+def get_day(user_input):
+    completion = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[
+            {
+                "role": "system",
+                "content": "You're a day parser. You need to identify the day from user query and return it as an integer. If you are not able to find any day return null. Your JSON schema should follow the following:\n\n{\n    \"day\": integer\n}"
+            },
+            {
+                "role": "user",
+                "content": user_input
+            }
+        ],
+        temperature=0,
+        max_tokens=1024,
+        top_p=1,
+        stream=False,
+        response_format={"type": "json_object"},
+        stop=None,
+    )
+
+    print(completion.choices[0].message)
+    return json.loads(completion.choices[0].message.content)
+
+def get_month(user_input):
+    completion = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[
+            {
+                "role": "system",
+                "content": "You're a month parser. You need to identify the month from user query and return it as an integer (1 for January, 2 for February, etc.). If you are not able to find any month return null. Your JSON schema should follow the following:\n\n{\n    \"month\": integer\n}"
+            },
+            {
+                "role": "user",
+                "content": user_input
+            }
+        ],
+        temperature=0,
+        max_tokens=1024,
+        top_p=1,
+        stream=False,
+        response_format={"type": "json_object"},
+        stop=None,
+    )
+
+    print(completion.choices[0].message)
+    return json.loads(completion.choices[0].message.content)
+
+def get_year(user_input):
+    completion = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[
+            {
+                "role": "system",
+                "content": "You're a year parser. You need to identify the year from user query and return it as an integer. If you are not able to find any year return null. Your JSON schema should follow the following:\n\n{\n    \"year\": integer\n}"
+            },
+            {
+                "role": "user",
+                "content": user_input
+            }
+        ],
+        temperature=0,
+        max_tokens=1024,
+        top_p=1,
+        stream=False,
+        response_format={"type": "json_object"},
+        stop=None,
+    )
+
+    print(completion.choices[0].message)
+    return json.loads(completion.choices[0].message.content)

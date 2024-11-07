@@ -27,7 +27,7 @@ ENV GROQ_API_KEY=$GROQ_API_KEY
 # Copy the application code into the container
 COPY . .
 
-RUN mkdir -p /input /output
+RUN mkdir -p /app/input /app/output
 
 # Expose port 8501 for Streamlit
 EXPOSE 8501

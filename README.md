@@ -7,13 +7,7 @@ This project is designed to take user queries, utilize a large language model (L
 
 1. **Download Models & Update docker file**
     - Download models from [Hugging Face IBM NASA Geospatial](https://huggingface.co/ibm-nasa-geospatial).
-    - Save the models to the `models` directory.
-    - Save the configurations to the `configs` directory.
-    - Then Add these 2 lines at the start after line 30 in Dockerfile
-    ```
-    COPY /path/to/config /app/config
-    COPY /path/to/checkpoint /app/checkpoint
-    ```
+    - Create a `models` directory and save the .pth file into that directory
 
 2. **Build Docker Image**
     ```sh

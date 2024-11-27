@@ -96,3 +96,10 @@ def show_results(input_raster_path, output_raster_path):
     plt.show()
 
     st.pyplot(fig)
+
+def show_image(image):
+    st.write(f"Image input shape is {image.shape}")
+    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+    plt.axis('off')
+    plt.imshow(image)
+    st.pyplot(fig)

@@ -3,7 +3,7 @@ from PIL import Image
 import torch
 import numpy as np
 import rasterio
-from utils.visuals import load_raster, enhance_raster_for_visualization, show_results
+from utils.visuals import load_raster, enhance_raster_for_visualization, show_results, show_image
 from utils.llm import get_completion, get_detectors
 from utils.data_collection import get_sentinel_data
 from mmcv import Config
@@ -73,13 +73,6 @@ def call_prithvi_model(tif_path, chosen_detector):
     custom_test_pipeline = process_test_pipeline(finetuned_model.cfg.data.test.pipeline)
     result = inference_segmentor(finetuned_model, tif_path, custom_test_pipeline=custom_test_pipeline)
     return result
-
-def show_image(image):
-    st.write(f"Image input shape is {image.shape}")
-    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-    plt.axis('off')
-    plt.imshow(image)
-    st.pyplot(fig)
 
 # def show_results(result, tif_path):
 #     fig, ax = plt.subplots(1, 2, figsize=(8, 8))

@@ -35,20 +35,31 @@
                     });
 
                     if (response.ok) {
-                        const blob = await response.blob();
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.style.display = 'none';
-                        a.href = url;
-                        a.download = 'result.tif';
-                        document.body.appendChild(a);
-                        a.click();
-                        window.URL.revokeObjectURL(url);
+                        const jsonResponse = await response.json();
+                        const resultDiv = document.createElement('div');
+                        resultDiv.textContent = JSON.stringify(jsonResponse, null, 2);
+                        document.body.appendChild(resultDiv);
                     } else {
                         const errorResponse = await response.json();
                         console.error(errorResponse);
                         alert('Failed to process the file: ' + (errorResponse.error || 'Unknown error'));
                     }
+
+                //     if (response.ok) {
+                //         const blob = await response.blob();
+                //         const url = window.URL.createObjectURL(blob);
+                //         const a = document.createElement('a');
+                //         a.style.display = 'none';
+                //         a.href = url;
+                //         a.download = 'result.tif';
+                //         document.body.appendChild(a);
+                //         a.click();
+                //         window.URL.revokeObjectURL(url);
+                //     } else {
+                //         const errorResponse = await response.json();
+                //         console.error(errorResponse);
+                //         alert('Failed to process the file: ' + (errorResponse.error || 'Unknown error'));
+                //     }
                 } catch (error) {
                     console.error(error);
                     alert('An error occurred while processing the file.');

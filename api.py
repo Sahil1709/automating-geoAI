@@ -1,8 +1,8 @@
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, File, UploadFile, Form, Request
 from typing import Annotated
 from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-import os, time, uvicorn, base64
+import os, time, uvicorn, base64, datetime
 import subprocess
 from utils.visuals import load_raster, enhance_raster_for_visualization, show_results
 from utils.llm import get_completion, get_detectors
@@ -72,18 +72,13 @@ async def process_file(file: UploadFile, detector: str = Form(...)):
     result_path = os.path.join(output_dir, file.filename.replace('.tif', '_pred.tif'))
 
     # Return the result
-    # return {
-    #     "input_file": file.filename,
-    #     "output_file": os.path.basename(result_path),
-    #     "inference_time": inference_time,
-    #     "file_response": FileResponse(result_path, media_type='image/tiff', filename=os.path.basename(result_path))
-    # }
-
+    if not os.path.exists(result_path):
+        return JSONResponse(content={"error": "Error processing the image"}, status_code=500)
     return FileResponse(result_path, media_type='image/tiff', filename=os.path.basename(result_path))
 
 
 @app.post("/process-base64/")
-async def process_file_base64(file: str = Form(...), detector: str = Form(...)):
+async def process_file_base64(request: Request, file: str = Form(...), detector: str = Form(...)):
 
     # Decode the base64 encoded file
     file_data = base64.b64decode(file)
@@ -118,10 +113,38 @@ async def process_file_base64(file: str = Form(...), detector: str = Form(...)):
     inference_time = end_time - start_time
 
     # Get the result file path
-    result_path = os.path.join(output_dir, "uploaded_file_pred.tif")
+    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    result_path = os.path.join(output_dir, f"uploaded_file_pred.tif")
+    new_result_path = os.path.join(output_dir, f"uploaded_file_pred_{timestamp}.tif")
+    os.rename(result_path, new_result_path)
+    result_path = new_result_path
 
-    # Return the result
-    return FileResponse(result_path, media_type='image/tiff', filename=os.path.basename(result_path))
+    # Schedule file deletion after 5 minutes
+    scheduler.add_job(delete_file, 'date', run_date=datetime.datetime.fromtimestamp(time.time() + 300), args=[result_path])
+
+    # Return the result details
+    if not os.path.exists(result_path):
+        return JSONResponse(content={"error": "Error processing the image"}, status_code=500)
+    
+    request_url = str(request.url)
+    host_url = request_url.split("/process-base64/")[0]
+    return JSONResponse(content={
+        "message": "File processed successfully. The file will be deleted in 5 minutes.",
+        "inference_time": inference_time,
+        "download_link": f"{host_url}/download/{os.path.basename(result_path)}"
+    })
+
+@app.get("/download/{filename}")
+async def download_file(filename: str):
+    file_path = os.path.join('output', filename)
+    if os.path.exists(file_path):
+        return FileResponse(file_path, media_type='image/tiff', filename=filename)
+    return JSONResponse(content={"error": "File not found"}, status_code=404)
+
+def delete_file(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        print(f"Deleted file: {file_path}")
 
 def delete_directories():
     input_dir = 'input/'
@@ -140,7 +163,7 @@ def delete_directories():
 
 # Initialize the scheduler
 scheduler = BackgroundScheduler()
-scheduler.add_job(delete_directories, 'interval', minutes=5)
+scheduler.add_job(delete_directories, 'interval', minutes=30)
 scheduler.start()
 
 if __name__ == "__main__":

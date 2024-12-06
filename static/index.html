@@ -4,6 +4,103 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Upload Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        input[type="file"],
+        input[type="text"],
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            display: none;
+        }
+        .home-button {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .home-button:hover {
+            background-color: #218838;
+        }
+        .logo {
+            display: block;
+            margin: 0 auto 20px auto;
+            max-width: 100px;
+        }
+        .download-button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            text-decoration: none;
+            display: none;
+            margin-top: 20px;
+        }
+        .download-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
     <script>
         async function handleSubmit(event) {
             event.preventDefault();
@@ -12,11 +109,18 @@
             const detectorInput = document.getElementById('detector');
             const file = fileInput.files[0];
             const detector = detectorInput.value;
+            const loadingDiv = document.getElementById('loading');
+            const resultDiv = document.getElementById('result');
+            const downloadButton = document.getElementById('downloadButton');
 
             if (!file || !detector) {
                 alert('Please provide both a file and a detector name.');
                 return;
             }
+
+            loadingDiv.style.display = 'block';
+            resultDiv.style.display = 'none';
+            downloadButton.style.display = 'none';
 
             const reader = new FileReader();
             reader.onloadend = async function () {
@@ -26,7 +130,7 @@
                 formData.append('detector', detector);
 
                 try {
-                    const response = await fetch('/process-base64/', {
+                    const response = await fetch('https://14bf-138-202-169-253.ngrok-free.app/process-base64/', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded'
@@ -34,35 +138,26 @@
                         body: formData
                     });
 
+                    loadingDiv.style.display = 'none';
+
                     if (response.ok) {
                         const jsonResponse = await response.json();
-                        const resultDiv = document.createElement('div');
                         resultDiv.textContent = JSON.stringify(jsonResponse, null, 2);
-                        document.body.appendChild(resultDiv);
+                        resultDiv.style.display = 'block';
+
+                        // Assuming the response contains a download link
+                        const downloadLink = jsonResponse.download_link;
+                        downloadButton.href = downloadLink;
+                        downloadButton.style.display = 'block';
                     } else {
                         const errorResponse = await response.json();
                         console.error(errorResponse);
                         alert('Failed to process the file: ' + (errorResponse.error || 'Unknown error'));
                     }
-
-                //     if (response.ok) {
-                //         const blob = await response.blob();
-                //         const url = window.URL.createObjectURL(blob);
-                //         const a = document.createElement('a');
-                //         a.style.display = 'none';
-                //         a.href = url;
-                //         a.download = 'result.tif';
-                //         document.body.appendChild(a);
-                //         a.click();
-                //         window.URL.revokeObjectURL(url);
-                //     } else {
-                //         const errorResponse = await response.json();
-                //         console.error(errorResponse);
-                //         alert('Failed to process the file: ' + (errorResponse.error || 'Unknown error'));
-                //     }
                 } catch (error) {
                     console.error(error);
                     alert('An error occurred while processing the file.');
+                    loadingDiv.style.display = 'none';
                 }
             };
 
@@ -71,13 +166,20 @@
     </script>
 </head>
 <body>
-    <h1>Upload File and Enter Detector Name</h1>
-    <form id="uploadForm" onsubmit="handleSubmit(event)">
-        <label for="file">Choose file:</label>
-        <input type="file" id="file" name="file" accept=".tif" required><br><br>
-        <label for="detector">Detector name:</label>
-        <input type="text" id="detector" name="detector" required><br><br>
-        <button type="submit">Submit</button>
-    </form>
+    <div class="container">
+        <a href="http://localhost:3000/homepage" class="home-button">Home</a>
+        <img src="/upload/logo" alt="Logo" class="logo">
+        <h1>Upload File and Enter Detector Name</h1>
+        <form id="uploadForm" onsubmit="handleSubmit(event)">
+            <label for="file">Choose file:</label>
+            <input type="file" id="file" name="file" accept=".tif" required><br><br>
+            <label for="detector">Detector name:</label>
+            <input type="text" id="detector" name="detector" required><br><br>
+            <button type="submit">Submit</button>
+        </form>
+        <div id="loading" class="loading">Loading...</div>
+        <div id="result" class="result"></div>
+        <a id="downloadButton" class="download-button" download>Download Result</a>
+    </div>
 </body>
 </html>

@@ -161,6 +161,10 @@ def delete_directories():
             if os.path.isfile(file_path):
                 os.unlink(file_path)
 
+@app.get('/upload/logo')
+async def get_logo():
+    return FileResponse('static/logo.png')
+
 # Initialize the scheduler
 scheduler = BackgroundScheduler()
 scheduler.add_job(delete_directories, 'interval', minutes=30)
